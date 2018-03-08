@@ -28,6 +28,13 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         { from: /.*/, to: path.posix.join(config.dev.assetsPublicPath, 'index.html') },
       ],
     },
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '3600',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-id, Content-Length, X-Requested-With',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS'
+    },
     hot: true,
     contentBase: false, // since we use CopyWebpackPlugin.
     compress: true,

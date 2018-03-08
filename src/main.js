@@ -3,14 +3,19 @@
 import Vue from 'vue'
 import 'vuetify/dist/vuetify.min.css'
 import Vuetify from 'vuetify'
+import VueResource from 'vue-resource'
 
 import App from './App'
 import router from './router'
 import store from './store'
 
 Vue.use(Vuetify)
+Vue.use(VueResource)
 
 Vue.config.productionTip = false
+
+// SHAME: is this really necessary?
+Vue.http.headers.common['Access-Control-Allow-Origin'] = '*'
 
 /* eslint-disable no-new */
 new Vue({
