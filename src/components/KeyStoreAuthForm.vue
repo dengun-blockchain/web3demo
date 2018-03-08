@@ -37,6 +37,13 @@ export default {
     getWalletData: function (keyStoreData) {
       const web3 = this.$store.state.web3
 
+      if (keyStoreData.Crypto) {
+        // places like MyEtherWallet provide keystore
+        // data with Crypto instead of 'crypto',
+        // the expected value from web3
+        keyStoreData.crypto = keyStoreData.Crypto
+      }
+
       try {
         let { privateKey, address: walletAddress } = web3.eth.accounts.decrypt(keyStoreData, this.password)
 
