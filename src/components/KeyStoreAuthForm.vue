@@ -8,29 +8,15 @@
         v-model="password"
         type="password"
       ></v-text-field>
-
       <label for="file">File</label>
       <input id="file" type="file" name="file" @change="updateFile">
       <v-btn type="submit">submit</v-btn>
     </form>
     <!-- TODO: group this somewhere else, a component called EtherPanel or something... -->
-    <div v-if="etherBalance">
-      Balance: {{ etherBalance }}
-    </div>
-    <div v-if="privateKey">
-      Private Key: {{ privateKey }}
-    </div>
-    <div v-if="walletAddress">
-      Private Key: {{ walletAddress }}
-    </div>
   </div>
 </template>
 
 <script>
-import Web3 from 'web3'
-
-let web3
-
 export default {
   name: 'KeyStoreAuthForm',
   data: function () {
@@ -46,18 +32,23 @@ export default {
     updateFile: function (e) {
       const fileList = e.target.files
       // eslint-disable-next-line
-      this.file = (fileList.length > 0) && fileList[0] || null
+      this.file = fileList.length > 0 && fileList[0] || null
     },
     getWalletData: function (keyStoreData) {
+      const web3 = this.$store.state.web3
+
       try {
         let { privateKey, address: walletAddress } = web3.eth.accounts.decrypt(keyStoreData, this.password)
 
-        this.privateKey = privateKey
-        this.walletAddress = walletAddress
-
         web3.eth.getBalance(walletAddress)
           .then((balance) => {
-            this.etherBalance = web3.utils.fromWei(balance)
+            const etherBalance = web3.utils.fromWei(balance)
+
+            this.$store.commit('setWalletData', {
+              privateKey,
+              walletAddress,
+              etherBalance
+            })
           })
           .catch(e => {
             // TODO: treat errors from getBalance
@@ -88,9 +79,6 @@ export default {
         fileReader.readAsBinaryString(this.file)
       }
     }
-  },
-  mounted () {
-    web3 = new Web3(Web3.givenProvider || 'ws://localhost:8546')
   }
 }
 </script>
