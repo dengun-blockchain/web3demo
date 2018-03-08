@@ -15,9 +15,17 @@
         type='text'
       ></v-text-field>
       <v-text-field
-        name='gas'
-        label='Gas'
-        v-model='gas'
+        name='gasLimit'
+        label='Gas Limit'
+        v-model="gasLimit"
+        v-bind='getGasLimit'
+        type='text'
+      ></v-text-field>
+      <v-text-field
+        name='gasPrice'
+        label='Gas Price'
+        v-model="gasPrice"
+        v-bind='getGasPrice'
         type='text'
       ></v-text-field>
       <div v-if='receiver'> Receiver: {{receiver}} </div>
@@ -25,6 +33,19 @@
       <div v-if='ethereumValue'> (in Ethereum): {{ethereumValue}} </div>
       <v-btn type='submit'>submit</v-btn>
     </form>
+    <hr style="margin:10px 0">
+
+    <h3 v-if='hashed'>
+      Transaction Sent!
+      <a v-if="receipt" :href="'https://ropsten.etherscan.io/tx/'+hash" target="_blank">See on EtherScan</a>
+    </h3>
+
+    <h3 v-if='receipt'>
+      <u>Transaction Received</u>
+    </h3>
+    <h3 v-if='confirmations'>
+      Confirmations: {{ confirmations }}
+    </h3>
   </div>
 </template>
 
@@ -35,7 +56,12 @@ export default {
     return {
       amount: null,
       receiver: null,
-      gas: null
+      gasLimit: 21000,
+      gasPrice: null,
+      hashed: false,
+      receipt: null,
+      hash: null,
+      confirmations: 0
     }
   },
   computed: {
@@ -45,44 +71,49 @@ export default {
     ethereumCurrency: function () {
       return this.$store.state.currency
     },
-    gasPrice: function () {
-      return 123456
+    getGasPrice: function () {
+      let result = this.$store.state.web3.eth.getGasPrice().then((res) => {
+        this.gasPrice = this.$store.state.web3.utils.fromWei(res, 'Gwei')
+      })
+      return result
+    },
+    getGasLimit: function () {
+      return this.gasLimit
     }
   },
   methods: {
     processTransaction: function () {
       const web3 = this.$store.state.web3
+
+      console.log(web3.utils.toWei(this.ethereumValue.toString(), 'ether'))
+
       let txObject = {
         from: this.$store.state.walletAddress,
         to: this.receiver,
-        amount: this.ethereumValue,
+        value: web3.utils.toWei(this.ethereumValue.toString(), 'ether'),
         gas: this.gas,
         gasPrice: this.gasPrice
       }
 
-      console.log(this.$store.state.privateKey)
-      web3.eth.signTransaction(txObject, this.$store.state.privateKey).then(
-        web3.eth.sendSignedTransaction
-      )
+      web3.eth.accounts.signTransaction(txObject, this.$store.state.privateKey).then(signed => {
+        var tran = web3.eth.sendSignedTransaction(signed.rawTransaction)
 
-      // web3.eth
-      //   .sendTransaction(txObject)
-      //   .once('transactionHash', hash => {
-      //     console.log('Tansaction hashed')
-      //   })
-      //   .once('receipt', receipt => {
-      //     console.log('reciept')
-      //   })
-      //   .on('confirmation', (confNumber, receipt) => {
-      //     console.log('Confirmed')
-      //   })
-      //   .on('error', function (error) {
-      //     console.log(error)
-      //   })
-      //   .then(function (receipt) {
-      //     // will be fired once the receipt its mined
-      //     console.log('mined')
-      //   })
+        tran.on('confirmation', (confirmationNumber, receipt) => {
+          this.hashed = true
+          this.confirmations++
+        })
+
+        tran.on('transactionHash', hash => {
+          this.hash = hash
+        })
+
+        tran.on('receipt', receipt => {
+          console.log(receipt)
+          this.receipt = receipt
+        })
+
+        tran.on('error', console.error)
+      })
     },
     submitForm: function (e) {
       e.preventDefault()

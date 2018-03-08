@@ -7,7 +7,7 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     count: 0,
-    web3: new Web3(Web3.givenProvider || 'ws://localhost:8546'),
+    web3: new Web3(Web3.givenProvider || 'https://ropsten.infura.io/UuwLWxYoBFFRPEAAzBwK'),
     currencyValue: null,
     currency: 'USD',
     privateKey: null,
