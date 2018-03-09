@@ -1,24 +1,19 @@
 <template>
   <!-- SHAME: useless div is just here because the template must have a single child -->
   <div>
-    <div v-if="value">
-      Value per token: {{ value }} {{ currency }}
+    <div v-if="currencyValue">
+      Value per token: {{ currencyValue }} {{ currency }}
     </div>
   </div>
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   name: 'TokenPriceDisplay',
   computed: {
-    // TODO: set this to get value from store
-    currency: function () {
-      return this.$store.state.currency
-    },
-    // TODO: discuss whether this is adequate. It might be 0, for example
-    value: function () {
-      return this.$store.state.currencyValue
-    }
+    ...mapState(['currencyValue', 'currency'])
   },
   mounted: function () {
     let { currencyValue, currency } = this.$store.state

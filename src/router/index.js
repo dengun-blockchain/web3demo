@@ -3,8 +3,6 @@ import Router from 'vue-router'
 
 import HomePage from '@/pages/HomePage'
 // SHAME: should have its own page
-import Counter from '@/components/Counter'
-
 Vue.use(Router)
 
 export default new Router({
@@ -13,11 +11,6 @@ export default new Router({
       path: '/',
       name: 'HomePage',
       component: HomePage
-    },
-    {
-      path: '/counter',
-      name: 'Counter',
-      component: Counter
     }
   ]
 })

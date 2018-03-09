@@ -1,6 +1,10 @@
 <template>
   <!-- SHAME: useless div is just here because the template must have a single child -->
   <div>
+    <v-alert type="error" :value="error">
+      {{ error }}
+    </v-alert>
+
     <form action="#" enctype="multipart/form-data" @submit="submitForm">
       <v-text-field
         name="file"
@@ -12,7 +16,6 @@
       <input id="file" type="file" name="file" @change="updateFile">
       <v-btn type="submit">submit</v-btn>
     </form>
-    <!-- TODO: group this somewhere else, a component called EtherPanel or something... -->
   </div>
 </template>
 
@@ -25,7 +28,8 @@ export default {
       password: null,
       privateKey: null,
       walletAddress: null,
-      etherBalance: null
+      etherBalance: null,
+      error: null
     }
   },
   methods: {
@@ -59,19 +63,17 @@ export default {
           })
           .catch(e => {
             // TODO: treat errors from getBalance
-            alert(e)
+            this.error = e.message
           })
       } catch (e) {
         // TODO: treat errors from trying to decrypt the keyStore
-        alert(e)
+        this.error = e.message
       }
     },
     submitForm: function (e) {
       e.preventDefault()
 
-      this.walletAddress = null
-      this.privateKey = null
-      this.etherBalance = null
+      this.error = null
 
       if (this.file) {
         const fileReader = new FileReader()

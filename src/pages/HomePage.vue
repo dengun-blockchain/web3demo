@@ -16,6 +16,8 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 import KeyStoreAuthForm from '@/components/KeyStoreAuthForm.vue'
 import TokenPriceDisplay from '@/components/TokenPriceDisplay.vue'
 import WalletDataDisplay from '@/components/WalletDataDisplay.vue'
@@ -30,9 +32,7 @@ export default {
     'TransactionForm': TransactionForm
   },
   computed: {
-    privateKey: function () {
-      return this.$store.state.privateKey
-    }
+    ...mapState(['privateKey'])
   }
 }
 </script>
