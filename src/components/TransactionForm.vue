@@ -1,12 +1,16 @@
 <template>
   <!-- SHAME: useless div is just here because the template must have a single child -->
   <div>
-    <v-snackbar v-if='hashed'>
-      Transaction Sent!
-      <a v-if="receipt" :href="'https://ropsten.etherscan.io/tx/'+hash" target="_blank">See on EtherScan</a>
-    </v-snackbar>
 
-    <v-alert type="error" :value="error">
+    <v-alert type='success' :value="receipt" outline>
+      Transaction Sent!
+    </v-alert>
+
+    <v-alert type='info' :value="hash" outline>
+      <a :href="'https://ropsten.etherscan.io/tx/'+hash" target="_blank">See on EtherScan</a>
+    </v-alert>
+
+    <v-alert type="error" :value="error" outline>
       {{ error }}
     </v-alert>
 
@@ -23,25 +27,22 @@
         v-model='receiver'
         type='text'
       ></v-text-field>
-      <div v-if='receiver'> Receiver: {{receiver}} </div>
-      <div v-if='amount'> Amount ({{currency}}): {{amount}} </div>
-      <div v-if='ethereumValue'> (in Ethereum): {{ethereumValue}} </div>
-      <v-btn type='submit'>submit</v-btn>
+      <v-btn type='submit' :disabled="sending">submit</v-btn>
+      <div v-if="sending">
+        <v-progress-circular indeterminate :size="20" color="primary"></v-progress-circular>
+        Sending transaction, please wait...
+      </div>
     </form>
-
+    <v-divider></v-divider>
+    <div v-if='receiver'> Receiver: {{receiver}} </div>
+    <div v-if='amount'> Amount ({{currency}}): {{amount}} </div>
+    <div v-if='ethereumValue'> (in Ethereum): {{ethereumValue}} </div>
     <!-- SHAME: why not add this to a separate component? -->
     <div v-if="gasPrice">
       <div>Gas price: {{ gasPrice }}</div>
       <div>Gas limit: {{ gasLimit }}</div>
       <div>Tx: {{ txFee }}</div>
     </div>
-    <v-divider></v-divider>
-    <h3 v-if='receipt'>
-      <u>Transaction Received</u>
-    </h3>
-    <h3 v-if='confirmations'>
-      Confirmations: {{ confirmations }}
-    </h3>
   </div>
 </template>
 
@@ -55,11 +56,10 @@ export default {
       amount: null,
       receiver: null,
       // TODO: set these as state data later
-      hashed: false,
       receipt: null,
       hash: null,
-      confirmations: 0,
-      error: null
+      error: null,
+      sending: false
     }
   },
   computed: {
@@ -70,6 +70,7 @@ export default {
       'walletAddress',
       'privateKey'
     ]),
+    // SHAME: in the end, gas was a better name altogether
     txFee: function () {
       let { gasPrice, gasLimit } = this.$store.state
 
@@ -94,27 +95,28 @@ export default {
         gas: web3.utils.toHex(this.txFee)
       }
 
+      this.sending = true
+
       web3.eth.accounts.signTransaction(txObject, this.$store.state.privateKey)
         .then(signed => {
           var tran = web3.eth.sendSignedTransaction(signed.rawTransaction)
-
-          tran.on('confirmation', (confirmationNumber, receipt) => {
-            this.hashed = true
-            this.confirmations++
-          })
 
           tran.on('transactionHash', hash => {
             this.hash = hash
           })
 
           tran.on('receipt', receipt => {
-            console.log(receipt)
             this.receipt = receipt
+            this.sending = false
           })
 
           tran.on('error', error => {
             this.error = error.message
+            this.sending = false
           })
+        }).catch(e => {
+          this.error = e.message
+          this.sending = false
         })
     },
     submitForm: function (e) {

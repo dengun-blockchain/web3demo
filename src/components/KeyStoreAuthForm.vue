@@ -1,7 +1,7 @@
 <template>
   <!-- SHAME: useless div is just here because the template must have a single child -->
   <div>
-    <v-alert type="error" :value="error">
+    <v-alert type="error" :value="error" outline>
       {{ error }}
     </v-alert>
 
