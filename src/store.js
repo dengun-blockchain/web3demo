@@ -13,7 +13,7 @@ export default new Vuex.Store({
     walletAddress: null,
     etherBalance: 0,
     gasPrice: null,
-    gasLimit: 21000
+    gasLimit: 42000
   },
   mutations: {
     setCurrencyValue: (state, payload) => { state.currencyValue = payload },
